@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Listening Challenge</title>
+<style>
+:root{
+  --bg: #fbf6ee; --card: #fff; --muted: #6b5e4a; --accent: #ff9800; --brown: #6b3f25;
+  --success: #4caf50; --danger: #e53935; --hover-glow: #fbd380; --selected-blue: #0d47a1;
+}
+body{ background: var(--bg); font-family: "Times New Roman", serif; display:flex; justify-content:center; padding:20px 12px; }
+.app{ max-width: 860px; width: 100%; background: var(--card); border-radius:14px; padding:24px; box-shadow:0 8px 30px rgba(30,30,30,0.08); }
+.logo{text-align:center; margin-bottom:4px;}
+.logo .title{ display:inline-block; padding:8px 16px; border-radius:10px; background:linear-gradient(90deg,#fffafa,#fff1dd); font-weight:bold; font-size:1.45rem; }
+.top-meta{text-align:center;margin-bottom:12px;}
+.progress{color:var(--muted);font-size:1.15rem;}
+.set-label{font-weight:bold;font-size:1.25rem;margin-top:4px;}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px; }
+.countdown{ background:#fff7ec; border:1px solid #f0d7b8; padding:14px 18px; border-radius:10px; width:220px; text-align:center; font-weight:bold; color:var(--brown); font-size:1.25rem; }
+.play-button{ padding:10px 18px; border-radius:8px; border:none; background: var(--brown); color:white; cursor:pointer; font-size:1.15rem; font-family: "Times New Roman", serif; }
+.play-button:hover{box-shadow:0 0 10px var(--hover-glow);}
+#skipCountdownBtn{ background:#d84315; font-size:1rem; padding:9px 16px; }
+.play-instruction{text-align:center; color:#d84315; font-weight:bold; font-size:1.3rem; margin-top:8px; margin-bottom:0px;}
+.mc-section{ margin-top:0px; }
+.per-q{ margin-bottom:10px; }
+.mc-question{font-weight:bold;margin-bottom:4px;font-size:1.2rem;}
+.mc-options-box{ background:linear-gradient(180deg,#ffffff,#fff4e6); border:1px solid #ecd7b8; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; box-shadow:0 3px 6px rgba(0,0,0,0.03); font-size:1.18rem; }
+.mc-option-wrapper{ display:flex; align-items:flex-start; gap:6px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:0.3s; color:#000; font-family: "Times New Roman", serif; }
+.mc-option-wrapper:hover{box-shadow:0 0 8px var(--hover-glow);}
+.mc-option-wrapper.disabled{cursor:not-allowed;opacity:0.6;}
+.mc-option-wrapper input[type="radio"]{ margin-top:2px; accent-color: var(--selected-blue); }
+.next-row{ display:flex; justify-content:center; align-items:center; margin-top:18px; }
+.next-btn{ background: linear-gradient(135deg, #ff8f00, #e65100); color: white; border: none; padding: 14px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.3rem; font-family: "Times New Roman", serif; box-shadow: 0 8px 28px rgba(255, 111, 0, 0.45); transition: all 0.35s ease; }
+.next-btn:hover{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255, 111, 0, 0.6); }
+.next-btn.submit { background: linear-gradient(135deg, #e65100, #c62828); box-shadow: 0 8px 28px rgba(198,40,40,.5); }
+.next-btn.submit:hover { box-shadow: 0 15px 40px rgba(198,40,40,.7); }
+.audio-ribbon{display:none; margin:20px auto; max-width:680px; width:100%; text-align:center; font-weight:bold; color:#6b3f25; font-size:1.1rem;}
+.audio-ribbon > div{ margin-bottom:10px; color:#d84315; }
+.audio-ribbon audio{ width:100%; max-width:600px; margin:0 auto; display:block; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.saved-notify{ position:fixed; top:18px; right:18px; background:var(--success); color:white; padding:10px 14px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); opacity:0; transition:all 0.3s ease; z-index:9999; font-weight:bold; font-size:0.95rem; }
+.saved-notify.show{opacity:1;}
+#resultOverlay{ display:none; max-width:980px; margin:30px auto 0; padding:28px; background:#fffbe0; border-radius:14px; box-shadow:0 12px 40px rgba(30,30,30,0.12); font-family:"Times New Roman", serif; }
+.result-box{ border:1px solid #ddd; border-radius:12px; padding:18px; margin-bottom:22px; background:#fff; }
+.transcription{ margin:15px 0; padding:16px; background:#fdf8e1; border-left:5px solid var(--accent); border-radius:8px; font-size:1.15rem; line-height:1.9; direction:rtl; text-align:right; color:#222; }
+.transcription span.evidence-0 { background:#fff34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(255,243,77,0.7); }
+.transcription span.evidence-1 { background:#a7f3d0; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(167,243,208,0.7); color:#065f46; }
+.transcription span.evidence-2 { background:#fda4af; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(253,164,175,0.7); color:#881337; }
+.transcription span.evidence-3 { background:#93c5fd; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(147,197,253,0.7); color:#1e40af; }
+.transcription span.evidence-4 { background:#d8b4fe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(216,180,254,0.7); color:#6b21a8; }
+.transcription span.evidence-5 { background:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(252,211,77,0.7); color:#92400e; }
+.transcription span.evidence-6 { background:#fecaca; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(254,202,202,0.7); color:#991b1b; }
+.transcription span.evidence-7 { background:#bfdbfe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(191,219,254,0.7); color:#1e40af; }
+.result-question{ font-weight:bold; font-size:1.22rem; margin:18px 0 10px; color:#333; }
+.result-option{ padding:10px 14px; margin:6px 0; border-radius:8px; font-size:1.15rem; display:flex; align-items:center; gap:10px; background:#f9f9f9; border:2px solid transparent; }
+.result-option.correct{ background:#d8f6df; border:2px solid #2e8b35; color:#0b5b2b; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.correct::after{ content:"Correct!"; position:absolute; right:14px; font-size:18px; }
+.result-option.wrong{ background:#fce8e8; border:2px solid #c73232; color:#8b0000; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.wrong::after{ content:"Wrong!"; position:absolute; right:14px; font-size:18px; }
+.result-option.your{ color:#d84315; font-weight:bold; }
+.score-box{ font-weight:bold; font-size:1.6rem; margin:0 0 30px 0; padding:20px; border-radius:12px; background:linear-gradient(90deg,#fff8b0,#ffe680); text-align:center; box-shadow:0 6px 20px rgba(255,200,0,0.25); }
+#congratsOverlay{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+#congratsCard{ max-width:720px; width:90%; background: linear-gradient(135deg,#ffffff,#fff8f0); border-radius:18px; padding:28px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: popIn 400ms ease; }
+@keyframes popIn{ from{transform:translateY(10px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+#congratsCard h1{ font-size:2rem; margin:6px 0; color:#2e6b3e; font-weight:bold; }
+#seeResultsBtn{ display:inline-block; padding:14px 22px; border-radius:12px; background: linear-gradient(90deg,#ffb74d,#ff8a65); color:white; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow:0 8px 30px rgba(255,140,65,0.25); }
+#seeResultsBtn:hover{ transform:translateY(-3px); }
+.glow-instruction{ text-align:center; font-weight:bold; font-size:1.25rem; color:#6b3f25; text-shadow: 0 0 6px #ff8f00; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="logo"><div class="title">Listening Challenge</div></div>
+  <div class="top-meta">
+    <div class="progress" id="progressText"></div>
+    <div class="set-label" id="setLabel"></div>
+  </div>
+  <div class="timer-box">
+    <div class="countdown" id="countdownBox">Loading...</div>
+    <button id="skipCountdownBtn" class="play-button">Skip Countdown</button>
+  </div>
+  <div id="studyInstruction" class="glow-instruction">Study the Questions</div>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="playBtn" class="play-button" style="display:none;">Play Audio</button>
+    <div id="audioNote" class="play-instruction" style="display:none;">
+      You will hear the recording <strong>twice</strong>
+    </div>
+  </div>
+  <div class="audio-ribbon" id="audioRibbon">
+    <div>Now playing... (beep → audio → beep → audio)</div>
+    <audio id="audioPlayer" controls preload="auto"></audio>
+  </div>
+  <audio id="beepAudio" src="beep.wav" preload="auto"></audio>
+  <div class="mc-section" id="mcSection"></div>
+  <div class="next-row">
+    <button id="nextBtn" class="next-btn">Next Challenge</button>
+  </div>
+</div>
+
+<div id="congratsOverlay">
+  <div id="congratsCard">
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" alt="celebrate" style="max-width:220px;margin:0 auto 12px auto;display:block;" />
+    <h1>Challenge Completed Successfully!</h1>
+    <p>Great job! Click below to see your detailed results.</p>
+    <button id="seeResultsBtn">See Results</button>
+  </div>
+</div>
+
+<div id="resultOverlay"></div>
+<div class="saved-notify" id="savedNotify">Answer saved</div>
+
+<script>
+const studySecondsPerQuestion = 15;
+let currentPage = 1;
+let countdownInterval = null;
+let timeLeft = 0;
+let audioSequenceActive = false;
+let abortAudio = false;
+const userAnswers = {};
+const letters = ["A", "B", "C", "D"];
+
+const el = {
+  progressText: document.getElementById("progressText"),
+  setLabel: document.getElementById("setLabel"),
+  countdownBox: document.getElementById("countdownBox"),
+  skipCountdownBtn: document.getElementById("skipCountdownBtn"),
+  playBtn: document.getElementById("playBtn"),
+  mcSection: document.getElementById("mcSection"),
+  nextBtn: document.getElementById("nextBtn"),
+  audioRibbon: document.getElementById("audioRibbon"),
+  audioPlayer: document.getElementById("audioPlayer"),
+  beepAudio: document.getElementById("beepAudio"),
+  savedNotify: document.getElementById("savedNotify"),
+  audioNote: document.getElementById("audioNote"),
+  resultOverlay: document.getElementById("resultOverlay"),
+  studyInstruction: document.getElementById("studyInstruction"),
+  congratsOverlay: document.getElementById("congratsOverlay"),
+  seeResultsBtn: document.getElementById("seeResultsBtn")
+};
+
+const listeningSets = [
+  {
+    audio: "01.wav",
+    transcription: `راه‌اندازی چنین واحدهایی می‌تونه نیاز ما رو به واردات کاهش بده و عملاً از خروج ارز در این شرایط جلوگیری کنه. ما تو حوزه نیروگاه‌های خورشیدی برنامه بلندی داریم، به‌اصطلاح باید حدود ۳۰ هزار مگاوات نیروگاه تجدیدپذیر احداث بکنیم. آینده انرژی دنیا به سمت انرژی‌های تجدیدپذیره اینکه در این حوزه هم خودکفا باشیم جزو اولویت‌های وزارت نیرو کشور هست. ما تجهیزات رو کاملاً وارد می‌کردیم. اینکه بتونیم این تجهیزات رو با همون کیفیت و با قیمت مناسب‌تر داخل تولید کنیم خودش جزو اولویت‌هاست. فعالیت چنین واحدهایی علاوه بر حفظ پایداری شبکه برق، می‌تونه در حوزه پدافند غیرعامل در این شرایط کشور هم نقش بسزایی داشته باشه`,
+    questions: [
+      { id: "1-1", question: "According to the speaker, what is one economic benefit of establishing domestic manufacturing facilities?",
+        keyphrases: ["راه‌اندازی چنین واحدهایی می‌تونه نیاز ما رو به واردات کاهش بده و عملاً از خروج ارز در این شرایط جلوگیری کنه"],
+        options: [
+          { answer: "Expanding the country's energy exports", correct:false },
+          { answer: "Increasing electricity prices to support local producers", correct:false },
+          { answer: "Attracting foreign companies to manufacture equipment", correct:false },
+          { answer: "Reducing imports and preventing foreign currency outflow", correct:true }
+        ]
+      },
+      { id: "1-2", question: "What does the speaker indicate about the country's plans for solar power?",
+        keyphrases: ["ما تو حوزه نیروگاه‌های خورشیدی برنامه بلندی داریم، به‌اصطلاح باید حدود ۳۰ هزار مگاوات نیروگاه تجدیدپذیر احداث بکنیم"],
+        options: [
+          { answer: "The country plans to replace all existing power plants with solar energy", correct:false },
+          { answer: "The country has an ambitious target for expanding renewable energy capacity", correct:true },
+          { answer: "The country intends to focus on exporting solar power equipment", correct:false },
+          { answer: "The country plans to postpone renewable energy projects until imports increase", correct:false }
+        ]
+      },
+      { id: "1-3", question: "Why does the speaker emphasize producing equipment domestically?",
+        keyphrases: ["اینکه بتونیم این تجهیزات رو با همون کیفیت و با قیمت مناسب‌تر داخل تولید کنیم خودش جزو اولویت‌هاست"],
+        options: [
+          { answer: "To eliminate the need for technical expertise from abroad", correct:false },
+          { answer: "To manufacture equipment of comparable quality at a lower cost", correct:true },
+          { answer: "To increase the country's dependence on imported technology", correct:false },
+          { answer: "To prioritize equipment exports over domestic energy needs", correct:false }
+        ]
+      },
+      { id: "1-4", question: "Besides helping maintain the stability of the electricity grid, what additional role could these manufacturing facilities play under current national conditions?",
+        keyphrases: ["فعالیت چنین واحدهایی علاوه بر حفظ پایداری شبکه برق، می‌تونه در حوزه پدافند غیرعامل در این شرایط کشور هم نقش بسزایی داشته باشه"],
+        options: [
+          { answer: "Increasing electricity consumption in industrial areas", correct:false },
+          { answer: "Replacing the country's existing renewable energy infrastructure", correct:false },
+          { answer: "Reducing the need for electricity distribution networks", correct:false },
+          { answer: "Supporting passive defense and national resilience", correct:true }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "02.wav",
+    transcription: `ما در تهران یک ناترازی در حوزه برق داریم ۳۰۰۰ مگاوات است. البته خب برق به صورت شبکه است. بله. گفتمانی که آقای رئیس‌جمهور از ابتدای دولت شروع کردن بحث استفاده از انرژی‌های تجدیدپذیر است، انرژی بادی، انرژی خورشیدی. خوشبختانه تهران یکی از استان‌هایی است که این ظرفیت و بستر رو داره، ما ۳۰۰ روز آفتابی داریم. لذا خب فراخوانی که آقای رئیس‌جمهور دادن، مردم استقبال کردن، سرمایه‌گذارها استقبال کردن، ما از ابتدایی که پنل‌های خورشیدی نصب می شده چندین دهه هست، ۲۳ مگاوات احداث کردیم نیروگاه. بله. امروز ما طی همین چند ماه ۱۰ هزار مگاوات مجوز صادر کردیم. آه. به بهره‌برداری هم نرسیدند.نه ۱۰ هزار، اینو عرض کردم این مراحل مختلف داره. مجوز، حدود ۱۱ هزار هکتار اراضی شناسایی شده که بتونه در اختیار سرمایه‌گذار قرار بده. ۵ هزار هکتار قرارداد بسته شده. امیدوارم ان‌شاءالله تلاش ما بر این است که با همت سرمایه‌گذاران تا پایان سال ۱۰۰۰ مگاوات به بهره‌برداری برسه. ۱۰۰۰ مگاوات، شما حساب کنید ۲۳، عدد ۲۳ رو با هم مقایسه کنید. عرض شود که نیروگاه بوشهر مقایسه کنید ۱۰۰۰ مگاوات. چه قدر تغییر با مشارکت مردم، یعنی رویکردی که دولت‌ چهاردهم دارد و شخص آقای رئیس‌جمهور داره استفاده از ظرفیت‌های مردمیه. اینه که واقعاً فضا رو باز کنیم، مسیر رو باز کنیم، خود مردم بیان مشارکت کنن که الحمدلله با قدرت تمام داریم پیش می‌ریم، ان‌شاءالله بتونیم خیلی متشکرم`,
+    questions: [
+      { id: "2-1", question: "What does the speaker identify as a key factor supporting the expansion of solar energy in Tehran?",
+        keyphrases: ["خوشبختانه تهران یکی از استان‌هایی است که این ظرفیت و بستر رو داره، ما ۳۰۰ روز آفتابی داریم"],
+        options: [
+          { answer: "The province's ability to export electricity to neighboring regions", correct:false },
+          { answer: "The availability of favorable natural conditions and abundant sunshine", correct:true },
+          { answer: "The completion of most planned renewable energy projects", correct:false },
+          { answer: "The government's decision to replace conventional power plants", correct:false }
+        ]
+      },
+      { id: "2-2", question: "What does the contrast between 23 megawatts and 10,000 megawatts illustrate?",
+        keyphrases: ["امروز ما طی همین چند ماه ۱۰ هزار مگاوات مجوز صادر کردیم","از ابتدایی که پنل‌های خورشیدی نصب می شده چندین دهه هست، ۲۳ مگاوات احداث کردیم نیروگاه"],
+        options: [
+          { answer: "The amount of electricity Tehran currently imports from other provinces", correct:false },
+          { answer: "The increase in the actual operating capacity of solar power plants", correct:false },
+          { answer: "The amount of land already used for completed renewable energy projects", correct:false },
+          { answer: "The difference between earlier construction achievements and recently issued permits", correct:true }
+        ]
+      },
+      { id: "2-3", question: "Which statement best describes the current status of the proposed renewable energy projects?",
+        keyphrases: ["حدود ۱۱ هزار هکتار اراضی شناسایی شده که بتونه در اختیار سرمایه‌گذار قرار بده. ۵ هزار هکتار قرارداد بسته شده"],
+        options: [
+          { answer: "Most projects have entered operation, while additional land is being identified", correct:false },
+          { answer: "Investors have signed contracts for all identified land, and construction is nearly complete", correct:false },
+          { answer: "The government has identified sufficient land but has not yet attracted private investors", correct:false },
+          { answer: "Permits have been issued, land has been identified, and some contracts have been signed, but the projects are not necessarily operational", correct:true }
+        ]
+      },
+      { id: "2-4", question: "What approach does the speaker emphasize as central to the government's renewable energy strategy?",
+        keyphrases: ["اینه که واقعاً فضا رو باز کنیم، مسیر رو باز کنیم، خود مردم بیان مشارکت کنن","رویکردی که دولت‌ چهاردهم دارد و شخص آقای رئیس‌جمهور داره استفاده از ظرفیت‌های مردمیه"],
+        options: [
+          { answer: "Concentrating investment and decision-making within government agencies", correct:false },
+          { answer: "Removing barriers so that private investors and ordinary citizens can participate", correct:true },
+          { answer: "Prioritizing large state-funded power plants over smaller projects", correct:false },
+          { answer: "Relying primarily on foreign companies to finance new facilities", correct:false }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "03.wav",
+    transcription: `جمعیت کردستان با تاکید بر کاربرد درمانی سلول‌های بنیادی در بیش از ۸۰ بیماری از جمله سرطان‌های خون و فلج مغزی، از راه‌اندازی پالایشگاه ضمائم زایمانی تا یک ماه آینده خبر داد. تلاش کردیم از اون چیزی که به عنوان ضمائم زایمانی بعد از تولد نوزاد داره دور ریخته می‌شه، این‌ها رو فرآوری بکنیم. معتقدیم اون چیزی که الان بعد از تولد نوزاد به عنوان خون بند ناف، جفت، پرده‌های جنینی به عنوان یک زباله داره دور ریخته می‌شه این‌ها دور ریختنی نیست، بلکه فرآوری می‌شه در حوزه پزشکی ازش استفاده می‌شه. پیش‌بینی ما بر این هستش که بیش از ۲۰ محصول رو می‌توانیم از این ضمائم زایمانی استحصال بکنیم، بنابراین به عنوان یک اقدام جدی و اثرگذار که میشه گفت یکی از مدل‌هایی است که در دنیا بی‌نظیره و اون هم راه‌اندازی پالایشگاه ضمائم زایمانی است که ان‌شاءالله به زودی این اتفاق در ایران خواهد افتاد. ضرابی اظهار داشت این نوآوری ملی با تولید زخم‌پوش‌های بیولوژیک و تانکرهای تخصصی داخلی علاوه بر توقف واردات مشابه خارجی، صرفه‌جویی ارزی قابل توجهی را رقم زده است`,
+    questions: [
+      { id: "3-1", question: "What is the primary purpose of establishing the birth-related tissue processing facility?",
+        keyphrases: ["تلاش کردیم از اون چیزی که به عنوان ضمائم زایمانی بعد از تولد نوزاد داره دور ریخته می‌شه، این‌ها رو فرآوری بکنیم"],
+        options: [
+          { answer: "To increase the production of blood products for emergency transfusions", correct:false },
+          { answer: "To process tissues normally discarded after childbirth for use in medical treatments", correct:true },
+          { answer: "To replace hospitals’ existing methods of treating blood cancers", correct:false },
+          { answer: "To reduce the number of medical procedures required for newborns", correct:false }
+        ]
+      },
+      { id: "3-2", question: "According to the speaker, which statement best explains the medical value of birth-related tissues?",
+        keyphrases: [ "این‌ها دور ریختنی نیست، بلکه فرآوری می‌شه در حوزه پزشکی ازش استفاده می‌شه"],
+        options: [
+          { answer: "They can be processed into materials used in a range of medical applications", correct:true }, 
+          { answer: "They can be used primarily to prevent complications during childbirth", correct:false },
+          { answer: "They are useful only for treating patients with blood cancers", correct:false },
+          { answer: "They are being collected mainly to support research on newborn health", correct:false }
+        ]
+      },
+      { id: "3-3", question: "What does the speaker predict about the potential output of the new facility?",
+        keyphrases: ["پیش‌بینی ما بر این هستش که بیش از ۲۰ محصول رو می‌توانیم از این ضمائم زایمانی استحصال بکنیم"],
+        options: [
+          { answer: "It will produce more than 20 medical products from birth-related tissues", correct:true }, 
+          { answer: "It will treat more than 20 diseases directly using stem cells", correct:false },
+          { answer: "It will establish more than 20 specialized hospitals across the country.", correct:false },
+          { answer: "It will eliminate the need to import all foreign medical equipment", correct:false }
+        ]
+      },
+      { id: "3-4", question: "According to the report, what are two expected economic benefits of the innovation?",
+        keyphrases: ["علاوه بر توقف واردات مشابه خارجی، صرفه‌جویی ارزی قابل توجهی را رقم زده است"],
+        options: [
+          { answer: "Increasing medical tourism and expanding private hospital services", correct:false },
+          { answer: "Ending imports of comparable products and achieving foreign-currency savings.", correct:true },
+          { answer: "Reducing treatment costs for patients and increasing domestic employment.", correct:false },
+          { answer: "Increasing exports of stem cells and attracting international investment", correct:false }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL_PAGES = listeningSets.length;
+
+/* ====================== ALL FUNCTIONS (unchanged except minor robustness) ====================== */
+function updateButtonText() {
+  el.nextBtn.textContent = currentPage === TOTAL_PAGES ? "Submit Challenge" : "Next Challenge";
+  el.nextBtn.classList.toggle("submit", currentPage === TOTAL_PAGES);
+}
+function stopAllAudio() {
+  abortAudio = true; audioSequenceActive = false;
+  [el.beepAudio, el.audioPlayer].forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  el.audioPlayer.src = "";
+  el.audioRibbon.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+}
+async function playAudioSequence() {
+  if (audioSequenceActive) return;
+  abortAudio = false; audioSequenceActive = true;
+  el.audioNote.style.display = "none";
+  el.audioRibbon.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioPlayer.src = listeningSets[currentPage-1].audio;
+  el.audioPlayer.load();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const waitEnd = audio => new Promise(r => { audio.onended = () => { audio.currentTime = 0; r(); }; });
+  try {
+    await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+    await delay(1000); await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+  } catch(e) {}
+  if (!abortAudio) { audioSequenceActive = false; el.playBtn.style.display = "inline-block"; }
+}
+function enterListeningPhase() {
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+  el.audioNote.style.display = "block";
+  el.studyInstruction.style.display = "none";
+  disableMCQs(false);
+}
+function startStudyTimerForPage(page) {
+  stopAllAudio();
+  const set = listeningSets[page-1];
+  timeLeft = studySecondsPerQuestion * set.questions.length;
+  el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioRibbon.style.display = "none";
+  el.audioNote.style.display = "none";
+  el.studyInstruction.style.display = "block";
+  disableMCQs(true);
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownInterval); enterListeningPhase(); }
+    else el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  }, 1000);
+}
+function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function showSaved() {
+  el.savedNotify.classList.add("show");
+  clearTimeout(el.savedNotify._t);
+  el.savedNotify._t = setTimeout(() => el.savedNotify.classList.remove("show"), 1200);
+}
+function disableMCQs(flag) {
+  el.mcSection.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = flag);
+}
+function renderMCQs(page) {
+  const set = listeningSets[page-1];
+  el.mcSection.innerHTML = "";
+  set.questions.forEach((q, qIdx) => {
+    const wrapper = document.createElement("div"); wrapper.className = "per-q";
+    const qEl = document.createElement("div"); qEl.className = "mc-question";
+    qEl.textContent = `${qIdx+1}. ${q.question}`;
+    wrapper.appendChild(qEl);
+    const box = document.createElement("div"); box.className = "mc-options-box";
+    q.options.forEach((opt, i) => {
+      const label = document.createElement("label"); label.className = "mc-option-wrapper";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = q.id;
+      if (userAnswers[q.id] === i) input.checked = true;
+      input.onchange = () => { userAnswers[q.id] = i; showSaved(); };
+      const letter = document.createElement("strong");
+      letter.textContent = letters[i] + ") ";
+      const text = document.createElement("span");
+      text.textContent = opt.answer;
+      label.appendChild(input); label.appendChild(letter); label.appendChild(text);
+      box.appendChild(label);
+    });
+    wrapper.appendChild(box);
+    el.mcSection.appendChild(wrapper);
+  });
+}
+
+/* FINAL HIGHLIGHTING (works perfectly now) */
+function showResultsPage() {
+  stopAllAudio();
+  document.getElementById("app").style.display = "none";
+  el.congratsOverlay.style.display = "none";
+  el.resultOverlay.style.display = "block";
+  let html = "", correct = 0, total = 0;
+
+  listeningSets.forEach((set, sIdx) => {
+    let transcribedText = set.transcription;
+
+    // Collect all highlights for this audio
+    const highlights = [];
+    set.questions.forEach((q, qIndex) => {
+      const colorClass = `evidence-${qIndex % 8}`;
+      const phrases = Array.isArray(q.keyphrases) ? q.keyphrases : [q.keyphrases];
+      phrases.forEach(phrase => {
+        const trimmed = phrase.trim();
+        if (trimmed) highlights.push({ phrase: trimmed, replacement: `<span class="${colorClass}">${trimmed}</span>` });
+      });
+    });
+
+    // Longest first to avoid partial matches
+    highlights.sort((a, b) => b.phrase.length - a.phrase.length);
+    highlights.forEach(hl => {
+      const escaped = hl.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'g');
+      transcribedText = transcribedText.replace(regex, hl.replacement);
+    });
+
+    html += `<div class="result-box"><strong>Audio ${sIdx+1}</strong><div class="transcription">${transcribedText}</div></div>`;
+
+    set.questions.forEach((q, qIndex) => {
+      total++;
+      const userIdx = userAnswers[q.id];
+      const correctIdx = q.options.findIndex(o => o.correct);
+      if (userIdx === correctIdx) correct++;
+
+      const colorClass = `evidence-${qIndex % 8}`;
+      const badge = `<span style="background:#ff9800;color:white;padding:3px 9px;border-radius:5px;font-size:0.85rem;font-weight:bold;">Q${qIndex+1}</span>`;
+      html += `<div class="result-question">${badge} ${q.question}</div><div class="mc-options-box">`;
+      q.options.forEach((opt, i) => {
+        let cls = "result-option";
+        let extra = "";
+        if (i === correctIdx) cls += " correct";
+        if (i === userIdx && i !== correctIdx) cls += " wrong";
+        if (i === userIdx) extra = '<span class="your">Your answer → </span>';
+        html += `<div class="${cls}">${extra}<strong>${letters[i]})</strong> ${opt.answer}</div>`;
+      });
+      html += `</div>`;
+
+      const evidences = Array.isArray(q.keyphrases) ? q.keyphrases.map(p => p.trim()) : [];
+      if (evidences.length) {
+        html += `<div style="margin:10px 0;color:#d84315;font-size:0.98rem;">
+                   Evidence → <strong>${evidences.map(p => `“${p}”`).join(" , ")}</strong>
+                 </div>`;
+      }
+    });
+  });
+
+  const percent = Math.round((correct / total) * 100);
+  el.resultOverlay.innerHTML = `<div class="score-box">Final Score: ${correct}/${total} (${percent}%)</div>${html}`;
+}
+
+function initPage() {
+  stopAllAudio();
+  el.progressText.textContent = `${currentPage} out of ${TOTAL_PAGES}`;
+  el.setLabel.textContent = `Listening Question Set ${currentPage}`;
+  renderMCQs(currentPage);
+  startStudyTimerForPage(currentPage);
+  updateButtonText();
+}
+
+/* Event Listeners */
+el.skipCountdownBtn.onclick = () => { clearInterval(countdownInterval); timeLeft = 0; enterListeningPhase(); };
+el.playBtn.onclick = playAudioSequence;
+el.nextBtn.onclick = () => {
+  stopAllAudio();
+  if (currentPage < TOTAL_PAGES) { currentPage++; initPage(); }
+  else { el.congratsOverlay.style.display = "flex"; }
+};
+el.seeResultsBtn.onclick = () => { stopAllAudio(); el.congratsOverlay.style.display = "none"; showResultsPage(); };
+
+initPage();
+</script>
+</body>
+</html>
